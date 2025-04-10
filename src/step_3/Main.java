@@ -48,7 +48,6 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Welcome to the traffic management system!");
 
-        // Get number of roads
         int roads;
         System.out.print("Input the number of roads: ");
         while (true) {
@@ -65,7 +64,6 @@ public class Main {
             }
         }
 
-        // Get interval
         int interval;
         System.out.print("Input the interval: ");
         while (true) {
@@ -83,7 +81,6 @@ public class Main {
         }
 
         while (true) {
-            clearConsole();
             System.out.print(
                     """
                     Menu:
@@ -118,17 +115,6 @@ public class Main {
             }
 
             scanner.nextLine();
-        }
-    }
-
-    private static void clearConsole() {
-        try {
-            var clearCommand = System.getProperty("os.name").contains("Windows")
-                    ? new ProcessBuilder("cmd", "/c", "cls")
-                    : new ProcessBuilder("clear");
-            clearCommand.inheritIO().start().waitFor();
-        } catch (Exception e) {
-            // Ignored: console clearing not guaranteed in IDE
         }
     }
 }
