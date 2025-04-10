@@ -1,5 +1,7 @@
 package step_3;
 
+import java.util.Scanner;
+
 /**
  * Oops, wrong button
  * ------------------
@@ -41,4 +43,92 @@ package step_3;
  */
 
 public class Main {
+    private static final Scanner scanner = new Scanner(System.in);
+
+    public static void main(String[] args) {
+        System.out.println("Welcome to the traffic management system!");
+
+        // Get number of roads
+        int roads;
+        System.out.print("Input the number of roads: ");
+        while (true) {
+            try {
+                roads = scanner.nextInt();
+                if (roads > 0) {
+                    break;
+                }
+                System.out.print("Incorrect input. Try again: ");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.print("Incorrect input. Try again: ");
+                scanner.nextLine();
+            }
+        }
+
+        // Get interval
+        int interval;
+        System.out.print("Input the interval: ");
+        while (true) {
+            try {
+                interval = scanner.nextInt();
+                if (interval > 0) {
+                    break;
+                }
+                System.out.print("Incorrect input. Try again: ");
+                scanner.nextLine();
+            } catch (Exception e) {
+                System.out.print("Incorrect input. Try again: ");
+                scanner.nextLine();
+            }
+        }
+
+        while (true) {
+            clearConsole();
+            System.out.print(
+                    """
+                    Menu:
+                    1. Add road
+                    2. Delete road
+                    3. Open system
+                    0. Quit
+                    """
+            );
+
+            int choice;
+            try {
+                choice = scanner.nextInt();
+                scanner.nextLine();
+
+                if (choice >= 0 && choice <= 3) {
+                    switch (choice) {
+                        case 1 -> System.out.println("Road added");
+                        case 2 -> System.out.println("Road deleted");
+                        case 3 -> System.out.println("System opened");
+                        case 0 -> {
+                            System.out.println("Buy!");
+                            return;
+                        }
+                    }
+                } else {
+                    System.out.println("Incorrect option. Try again");
+                }
+            } catch (Exception e) {
+                System.out.println("Incorrect option. Try again");
+                scanner.nextLine();
+            }
+
+            scanner.nextLine();
+        }
+    }
+
+    private static void clearConsole() {
+        try {
+            var clearCommand = System.getProperty("os.name").contains("Windows")
+                    ? new ProcessBuilder("cmd", "/c", "cls")
+                    : new ProcessBuilder("clear");
+            clearCommand.inheritIO().start().waitFor();
+        } catch (Exception e) {
+            // Ignored: console clearing not guaranteed in IDE
+        }
+    }
 }

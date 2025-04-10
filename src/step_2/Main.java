@@ -48,7 +48,7 @@ public class Main {
                     System.out.println("System opened");
                     break;
                 case 0:
-                    System.out.println("Buy");
+                    System.out.println("Buy!");
                     return;
             }
         }
