@@ -1,5 +1,6 @@
 package step_3;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 /**
@@ -43,7 +44,7 @@ import java.util.Scanner;
  */
 
 public class Main {
-    private static final Scanner scanner = new Scanner(System.in);
+    static final Scanner scanner = new Scanner(System.in);
 
     public static void main(String[] args) {
         System.out.println("Welcome to the traffic management system!");
@@ -57,9 +58,9 @@ public class Main {
                     break;
                 }
                 System.out.print("Incorrect input. Try again: ");
-                scanner.nextLine();
             } catch (Exception e) {
                 System.out.print("Incorrect input. Try again: ");
+            } finally {
                 scanner.nextLine();
             }
         }
@@ -73,14 +74,17 @@ public class Main {
                     break;
                 }
                 System.out.print("Incorrect input. Try again: ");
-                scanner.nextLine();
             } catch (Exception e) {
                 System.out.print("Incorrect input. Try again: ");
+            } finally {
                 scanner.nextLine();
             }
         }
 
         while (true) {
+            // Clearing won't work in IntelliJ IDEA console.
+            clearConsole();
+
             System.out.print(
                     """
                     Menu:
@@ -116,5 +120,16 @@ public class Main {
 
             scanner.nextLine();
         }
+    }
+
+    static void clearConsole() {
+        // Clean the console output
+        try {
+            var clearCommand = System.getProperty("os.name").contains("Windows")
+                    ? new ProcessBuilder("cmd", "/c", "cls")
+                    : new ProcessBuilder("clear");
+            clearCommand.inheritIO().start().waitFor();
+        }
+        catch (IOException | InterruptedException ignored) {}
     }
 }
