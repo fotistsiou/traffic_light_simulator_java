@@ -104,43 +104,41 @@ public class Main {
             int choice;
             try {
                 choice = scanner.nextInt();
-                scanner.nextLine();
-
+                scanner.nextLine(); // clean the input
                 if (choice >= 0 && choice <= 3) {
                     switch (choice) {
                         case 1 -> {
                             System.out.println("Road added. Press \"Enter\" to open menu.");
-                            scanner.nextLine();
+                            scanner.nextLine(); // wait for press enter
                         }
                         case 2 -> {
                             System.out.println("Road deleted. Press \"Enter\" to open menu.");
-                            scanner.nextLine();
+                            scanner.nextLine(); // wait for press enter
                         }
                         case 3 -> {
                             inSystemState = true;
                             while (true) {
-                                String input = scanner.nextLine();
-                                if (input.isEmpty()) {
-                                    inSystemState = false;
-                                    break;
+                                if (scanner.nextLine().isEmpty()) { // wait for press enter to exit from state
+                                    inSystemState = false; // stop print message from queueThread
+                                    break; // exit from state
                                 }
                             }
                         }
                         case 0 -> {
                             System.out.println("Buy!");
                             programRunning = false;
-                            queueThread.join(); // wait to terminate
-                            return;
+                            queueThread.join(); // waits until the thread finishes
+                            return; // terminate the program
                         }
                     }
                 } else {
-                    System.out.println("Incorrect option. Try again");
-                    scanner.nextLine();
+                    System.out.println("Incorrect option. Press \"Enter\" to open menu and try again.");
+                    scanner.nextLine(); // wait for press enter
                 }
             } catch (Exception e) {
-                System.out.println("Incorrect option. Try again");
-                scanner.nextLine();
-                scanner.nextLine();
+                System.out.println("Incorrect option. Press \"Enter\" to open menu and try again.");
+                scanner.nextLine(); // clear invalid input
+                scanner.nextLine(); // wait for press enter
             }
         }
     }
