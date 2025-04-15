@@ -82,9 +82,6 @@ public class Main {
         }
 
         while (true) {
-            // Clearing won't work in IntelliJ IDEA console.
-            clearConsole();
-
             System.out.print(
                     """
                     Menu:
@@ -120,16 +117,5 @@ public class Main {
 
             scanner.nextLine();
         }
-    }
-
-    static void clearConsole() {
-        // Clean the console output
-        try {
-            var clearCommand = System.getProperty("os.name").contains("Windows")
-                    ? new ProcessBuilder("cmd", "/c", "cls")
-                    : new ProcessBuilder("clear");
-            clearCommand.inheritIO().start().waitFor();
-        }
-        catch (IOException | InterruptedException ignored) {}
     }
 }
