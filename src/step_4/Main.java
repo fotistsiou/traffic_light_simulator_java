@@ -90,15 +90,14 @@ public class Main {
         queueThread.start();
 
         while (true) {
-            clearConsole();
             System.out.print(
                     """
-                    Menu:
-                    1. Add road
-                    2. Delete road
-                    3. Open system
-                    0. Quit
-                    """
+                            Menu:
+                            1. Add road
+                            2. Delete road
+                            3. Open system
+                            0. Quit
+                            """
             );
 
             int choice;
@@ -142,31 +141,22 @@ public class Main {
             }
         }
     }
+}
 
-    static void clearConsole() {
-        try {
-            var clearCommand = System.getProperty("os.name").contains("Windows")
-                    ? new ProcessBuilder("cmd", "/c", "cls")
-                    : new ProcessBuilder("clear");
-            clearCommand.inheritIO().start().waitFor();
-        } catch (IOException | InterruptedException ignored) {}
-    }
-
-    static class QueueThread extends Thread {
-        @Override
-        public void run() {
-            while (programRunning) {
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                    timeSinceStartup++;
-                    if (inSystemState) {
-                        System.out.println("! " + timeSinceStartup + "s. have passed since system startup !");
-                        System.out.println("! Number of roads: " + roads + " !");
-                        System.out.println("! Interval: " + interval + " !");
-                        System.out.println("! Press \"Enter\" to open menu !");
-                    }
-                } catch (InterruptedException ignored) {}
-            }
+class QueueThread extends Thread {
+    @Override
+    public void run() {
+        while (Main.programRunning) {
+            try {
+                TimeUnit.SECONDS.sleep(1);
+                Main.timeSinceStartup++;
+                if (Main.inSystemState) {
+                    System.out.println("! " + Main.timeSinceStartup + "s. have passed since system startup !");
+                    System.out.println("! Number of roads: " + Main.roads + " !");
+                    System.out.println("! Interval: " + Main.interval + " !");
+                    System.out.println("! Press \"Enter\" to open menu !");
+                }
+            } catch (InterruptedException ignored) {}
         }
     }
 }
