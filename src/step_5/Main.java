@@ -27,14 +27,26 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     static final Scanner scanner = new Scanner(System.in);
+
+    static int roads;
+    static int interval;
+
+    // Thread Counter State Variables:
+    // - inSystemState: Indicates whether the system is currently in an active/internal state.
+    // - programRunning: Flag to control the main program loop; false stops the execution.
+    // - timeSinceStartup: Tracks the elapsed time (in seconds/milliseconds) since the program started.
     static volatile boolean inSystemState = false;
     static volatile boolean programRunning = true;
     static int timeSinceStartup = 0;
-    static int roads;
+
+    // Circular Queue Implementation using an Array:
+    // - roadNames: The array that holds road name entries.
+    // - roadNamesFront: Points to the front of the queue (oldest element).
+    // - roadNamesRear: Points to the rear of the queue (next insertion point).
     static String[] roadNames;
-    static int roadCounterLast = 0;
-    static int roadCounterFirst = 0;
-    static int interval;
+    static int roadNamesRear = 0;
+    static int roadNamesFront = 0;
+
 
     public static void main(String[] args) {
         System.out.println("Welcome to the traffic management system!");
@@ -62,54 +74,65 @@ public class Main {
             int choice;
             try {
                 choice = scanner.nextInt();
-                scanner.nextLine(); // clean the input
+                scanner.nextLine(); // Clear the buffer (consume leftover newline)
                 if (choice >= 0 && choice <= 3) {
                     switch (choice) {
                         case 1 -> {
-                            if (Main.roadCounterLast < Main.roadNames.length) {
+                            if (Main.roadNames[Main.roadNamesRear] == null) {
                                 System.out.print("Input road name: ");
-                                Main.roadNames[Main.roadCounterLast] = Main.scanner.nextLine();
-                                System.out.println(Main.roadNames[Main.roadCounterLast] + " added. Press \"Enter\" to open menu.");
-                                Main.roadCounterLast++;
+                                Main.roadNames[Main.roadNamesRear] = Main.scanner.nextLine();
+                                System.out.println(Main.roadNames[Main.roadNamesRear] + " added. Press \"Enter\" to open menu.");
+
+                                // Update rear index for circular queue:
+                                // Calculates the next position using modulo to wrap around the array.
+                                // Formula: nextRear = (currentRear + 1) % sizeOfArray
+                                Main.roadNamesRear = (Main.roadNamesRear + 1) % Main.roads;
                             } else {
                                 System.out.println("Queue is full. Press \"Enter\" to open menu.");
                             }
-                            Main.scanner.nextLine(); // wait for press enter
+                            Main.scanner.nextLine(); // Wait for user to press Enter
                         }
                         case 2 -> {
-                            if (Main.roadCounterLast > 0) {
-                                System.out.println(Main.roadNames[roadCounterFirst] + " deleted. Press \"Enter\" to open menu.");
-                                Main.roadNames[roadCounterFirst] = null;
-                                Main.roadCounterFirst++;
+                            if (Main.roadNames[roadNamesFront] != null) {
+                                System.out.println(Main.roadNames[roadNamesFront] + " deleted. Press \"Enter\" to open menu.");
+                                Main.roadNames[roadNamesFront] = null;
+
+                                // Update front index for circular queue:
+                                // Calculates the next position using modulo to wrap around the array.
+                                // Formula: nextFront = (currentFront + 1) % sizeOfArray
+                                Main.roadNamesFront = (Main.roadNamesFront + 1) % Main.roads;
                             } else {
                                 System.out.println("Queue is empty. Press \"Enter\" to open menu.");
                             }
-                            Main.scanner.nextLine(); // wait for press enter
+                            Main.scanner.nextLine(); // Wait for user to press Enter
                         }
                         case 3 -> {
-                            inSystemState = true;
+                            inSystemState = true; // Set the system state to active, signaling other threads to print status
+
+                            // Enter system state: wait for user input to exit this state
                             while (true) {
-                                if (scanner.nextLine().isEmpty()) { // wait for press enter to exit from state
-                                    inSystemState = false; // stop print message from queueThread
-                                    break; // exit from state
+                                // Wait for the user to press Enter (empty line)
+                                if (scanner.nextLine().isEmpty()) {
+                                    inSystemState = false; // Signal other threads (e.g., queueThread) to stop printing
+                                    break; // Exit system state loop
                                 }
                             }
                         }
                         case 0 -> {
                             System.out.println("Buy!");
-                            programRunning = false;
-                            queueThread.join(); // waits until the thread finishes
-                            return; // terminate the program
+                            programRunning = false; // Signal all running threads to stop
+                            queueThread.join(); // Wait for the queueThread to finish execution before exiting
+                            return; // Terminate the program
                         }
                     }
                 } else {
                     System.out.println("Incorrect option. Press \"Enter\" to open menu and try again.");
-                    scanner.nextLine(); // wait for press enter
+                    scanner.nextLine(); // Wait for user to press Enter
                 }
             } catch (Exception e) {
                 System.out.println("Incorrect option. Press \"Enter\" to open menu and try again.");
-                scanner.nextLine(); // clear invalid input
-                scanner.nextLine(); // wait for press enter
+                scanner.nextLine(); // Clear the invalid input
+                scanner.nextLine(); // Wait for user to press Enter
             }
         }
     }
@@ -121,13 +144,13 @@ public class Main {
             try {
                 promptTypeNumber = Main.scanner.nextInt();
                 if (promptTypeNumber > 0) {
-                    break;
+                    break; // Valid positive integer entered
                 }
                 System.out.print("Incorrect input. Try again: ");
             } catch (Exception e) {
                 System.out.print("Incorrect input. Try again: ");
             } finally {
-                scanner.nextLine();
+                scanner.nextLine(); // Clear the buffer (consume leftover newline)
             }
         }
         return promptTypeNumber;
@@ -137,14 +160,21 @@ public class Main {
 class QueueThread extends Thread {
     @Override
     public void run() {
-        while (Main.programRunning) {
+        while (Main.programRunning) { // Keep the thread running while the program is active
             try {
+                // Sleep for 1 second to regulate the printing interval
                 TimeUnit.SECONDS.sleep(1);
+
+                // Increment the time since the program started
                 Main.timeSinceStartup++;
+
+                // If the system is in an active state, print relevant information
                 if (Main.inSystemState) {
                     System.out.println("! " + Main.timeSinceStartup + "s. have passed since system startup !");
                     System.out.println("! Number of roads: " + Main.roads + " !");
                     System.out.println("! Interval: " + Main.interval + " !");
+
+                    // Print all the road names that have been added to the queue
                     System.out.println();
                     for (int i = 0; i < Main.roads; i++) {
                         if (Main.roadNames[i] != null) {
@@ -154,7 +184,10 @@ class QueueThread extends Thread {
                     System.out.println();
                     System.out.println("! Press \"Enter\" to open menu !");
                 }
-            } catch (InterruptedException ignored) {}
+            } catch (InterruptedException ignored) {
+                // If the thread is interrupted, the exception is caught but ignored
+                // This allows the thread to continue its normal operation
+            }
         }
     }
 }
