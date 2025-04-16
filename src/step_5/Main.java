@@ -78,9 +78,11 @@ public class Main {
                 if (choice >= 0 && choice <= 3) {
                     switch (choice) {
                         case 1 -> {
+                            System.out.print("Input road name: ");
+                            String input = Main.scanner.nextLine();
+
                             if (Main.roadNames[Main.roadNamesRear] == null) {
-                                System.out.print("Input road name: ");
-                                Main.roadNames[Main.roadNamesRear] = Main.scanner.nextLine();
+                                Main.roadNames[Main.roadNamesRear] = input;
                                 System.out.println(Main.roadNames[Main.roadNamesRear] + " added. Press \"Enter\" to open menu.");
 
                                 // Update rear index for circular queue:
@@ -184,10 +186,7 @@ class QueueThread extends Thread {
                     System.out.println();
                     System.out.println("! Press \"Enter\" to open menu !");
                 }
-            } catch (InterruptedException ignored) {
-                // If the thread is interrupted, the exception is caught but ignored
-                // This allows the thread to continue its normal operation
-            }
+            } catch (InterruptedException ignored) {}
         }
     }
 }
