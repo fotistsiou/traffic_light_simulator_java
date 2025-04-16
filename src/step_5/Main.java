@@ -31,18 +31,12 @@ public class Main {
     static int roads;
     static int interval;
 
-    // Thread Counter State Variables:
-    // - inSystemState: Indicates whether the system is currently in an active/internal state.
-    // - programRunning: Flag to control the main program loop; false stops the execution.
-    // - timeSinceStartup: Tracks the elapsed time (in seconds/milliseconds) since the program started.
+    // Thread Counter State Variables
     static volatile boolean inSystemState = false;
     static volatile boolean programRunning = true;
     static int timeSinceStartup = 0;
 
-    // Circular Queue Implementation using an Array:
-    // - roadNames: The array that holds road name entries.
-    // - roadNamesFront: Points to the front of the queue (oldest element).
-    // - roadNamesRear: Points to the rear of the queue (next insertion point).
+    // Circular Queue Implementation Variables
     static String[] roadNames;
     static int roadNamesRear = 0;
     static int roadNamesFront = 0;
@@ -109,21 +103,19 @@ public class Main {
                             Main.scanner.nextLine(); // Wait for user to press Enter
                         }
                         case 3 -> {
-                            inSystemState = true; // Set the system state to active, signaling other threads to print status
+                            inSystemState = true; // Signal the queueThread for opening system state
 
-                            // Enter system state: wait for user input to exit this state
                             while (true) {
-                                // Wait for the user to press Enter (empty line)
-                                if (scanner.nextLine().isEmpty()) {
-                                    inSystemState = false; // Signal other threads (e.g., queueThread) to stop printing
-                                    break; // Exit system state loop
+                                if (scanner.nextLine().isEmpty()) { // Wait for user to press Enter
+                                    inSystemState = false; // Signal the queueThread for closing system state
+                                    break;
                                 }
                             }
                         }
                         case 0 -> {
                             System.out.println("Buy!");
-                            programRunning = false; // Signal all running threads to stop
-                            queueThread.join(); // Wait for the queueThread to finish execution before exiting
+                            programRunning = false; // Signal the queueThread to stop
+                            queueThread.join(); // Wait for the queueThread to stop
                             return; // Terminate the program
                         }
                     }
