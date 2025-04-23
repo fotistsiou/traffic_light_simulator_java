@@ -210,22 +210,21 @@ public class Main {
 class QueueThread extends Thread {
     @Override
     public void run() {
-        while (Main.programRunning) { // Keep the thread running while the program is active
+        while (Main.programRunning) {
             try {
-                // Sleep for 1 second to regulate the printing interval
+                // Sleep first so the startup message remains at 0s for 1 full second
                 TimeUnit.SECONDS.sleep(1);
 
-                // Increment the time since the program started
+                // Increment time after first second
                 Main.timeSinceStartup++;
 
-                // If the system is in an active state, print relevant information
                 if (Main.inSystemState) {
-                    // Print Initial Standard Message
-                    System.out.println("! " + Main.timeSinceStartup + "s. have passed since system startup !");
+                    int currentTime = Main.timeSinceStartup;
+
+                    System.out.println("! " + currentTime + "s. have passed since system startup !");
                     System.out.println("! Number of roads: " + Main.numberOfRoads + " !");
                     System.out.println("! Interval: " + Main.interval + " !");
 
-                    // Calculating how many streets have names
                     int activeCount = 0;
                     int[] activeIndexes = new int[Main.numberOfRoads];
                     for (int i = 0; i < Main.numberOfRoads; i++) {
@@ -235,42 +234,30 @@ class QueueThread extends Thread {
                         }
                     }
 
-                    // Print Road Messages
                     System.out.println();
                     if (activeCount > 0) {
-                        int activePosition = (Main.timeSinceStartup / Main.interval) % activeCount;
+                        // Don't calculate countdowns at time 0
+                        int activePosition = ((currentTime - 1) / Main.interval) % activeCount;
                         int activeRoadIndex = activeIndexes[activePosition];
 
                         for (int j = 0; j < activeCount; j++) {
                             int i = activeIndexes[j];
 
                             if (i == activeRoadIndex) {
-                                int timeLeft = Main.interval - (Main.timeSinceStartup % Main.interval);
-                                System.out.println(
-                                        Main.roadNames[i] +
-                                                "\u001B[32m" +
-                                                " will be open for " +
-                                                timeLeft + "s." +
-                                                "\u001B[0m"
-                                );
+                                int timeLeft = Main.interval - ((currentTime - 1) % Main.interval);
+                                System.out.println(Main.roadNames[i] + " will be\033[32m open for " + timeLeft + "s.\033[0m");
                             } else {
                                 int cyclesAway = (j - activePosition + activeCount) % activeCount;
-                                int timeUntilOpen = cyclesAway * Main.interval - (Main.timeSinceStartup % Main.interval);
-                                System.out.println(
-                                        Main.roadNames[i] +
-                                                "\u001B[31m" +
-                                                " will be closed for " +
-                                                timeUntilOpen + "s." +
-                                                "\u001B[0m"
-                                );
+                                int timeUntilOpen = cyclesAway * Main.interval - ((currentTime - 1) % Main.interval);
+                                System.out.println(Main.roadNames[i] + " will be\033[31m closed for " + timeUntilOpen + "s.\033[0m");
                             }
                         }
                     }
                     System.out.println();
 
-                    // Print End Standard Message
                     System.out.println("! Press \"Enter\" to open menu !");
                 }
+
             } catch (InterruptedException ignored) {}
         }
     }
