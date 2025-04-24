@@ -77,6 +77,7 @@ import java.util.concurrent.TimeUnit;
 public class Main {
     static final Scanner scanner = new Scanner(System.in);
 
+    // User Inputs Variables
     static int numberOfRoads;
     static int interval;
 
@@ -120,6 +121,7 @@ public class Main {
             try {
                 choice = scanner.nextInt();
                 scanner.nextLine(); // Clear the buffer (consume leftover newline)
+
                 if (choice >= 0 && choice <= 3) {
                     switch (choice) {
                         case 1 -> {
@@ -131,12 +133,15 @@ public class Main {
                                 Main.roadNames[Main.roadIndexRear] = input;
                                 System.out.println(Main.roadNames[Main.roadIndexRear] + " added. Press \"Enter\" to open menu.");
 
-                                // Add road interval to the roadIntervals queue
-                                int lastIndex = (Main.roadIndexRear - 1 + Main.numberOfRoads) % Main.numberOfRoads;
-                                Main.roadIntervals[Main.roadIndexRear] = Main.roadIntervals[lastIndex] + Main.interval;
+                                // Add road interval to the roadIntervals queue:
+                                // Find the previous index of a circular queue, using modulo.
+                                // Formula: previousRear = (currentRear - 1 + sizeOfArray) % sizeOfArray
+                                int previousIndex = (Main.roadIndexRear - 1 + Main.numberOfRoads) % Main.numberOfRoads;
+                                // Calculate the interval of next index using the interval of previous index
+                                Main.roadIntervals[Main.roadIndexRear] = Main.roadIntervals[previousIndex] + Main.interval;
 
                                 // Update rear index for circular queue:
-                                // Calculates the next position using modulo to wrap around the array.
+                                // Calculates the next position using modulo.
                                 // Formula: nextRear = (currentRear + 1) % sizeOfArray
                                 Main.roadIndexRear = (Main.roadIndexRear + 1) % Main.numberOfRoads;
                             } else {
@@ -146,8 +151,11 @@ public class Main {
                         }
                         case 2 -> {
                             if (Main.roadNames[Main.roadIndexFront] != null) {
+                                // Print the front index
                                 System.out.println(Main.roadNames[Main.roadIndexFront] + " deleted. Press \"Enter\" to open menu.");
+                                // Delete the front index (name & interval)
                                 Main.roadNames[Main.roadIndexFront] = null;
+                                Main.roadIntervals[Main.roadIndexFront] = 0;
 
                                 // Update front index for circular queue:
                                 // Calculates the next position using modulo to wrap around the array.
@@ -164,7 +172,7 @@ public class Main {
                             while (true) {
                                 if (scanner.nextLine().isEmpty()) { // Wait for user to press Enter
                                     inSystemState = false; // Signal the queueThread for closing system state
-                                    break;
+                                    break; // Exit from system state
                                 }
                             }
                         }
@@ -210,21 +218,16 @@ public class Main {
 class QueueThread extends Thread {
     @Override
     public void run() {
-        while (Main.programRunning) {
+        while (Main.programRunning) { // Keep the thread running while the program is active
             try {
-                // Sleep first so the startup message remains at 0s for 1 full second
-                TimeUnit.SECONDS.sleep(1);
-
-                // Increment time after first second
-                Main.timeSinceStartup++;
-
+                // If the system is in an active state, print relevant information
                 if (Main.inSystemState) {
-                    int currentTime = Main.timeSinceStartup;
-
-                    System.out.println("! " + currentTime + "s. have passed since system startup !");
+                    // Print Initial Standard Message
+                    System.out.println("! " + Main.timeSinceStartup + "s. have passed since system startup !");
                     System.out.println("! Number of roads: " + Main.numberOfRoads + " !");
                     System.out.println("! Interval: " + Main.interval + " !");
 
+                    // Calculating how many streets have names
                     int activeCount = 0;
                     int[] activeIndexes = new int[Main.numberOfRoads];
                     for (int i = 0; i < Main.numberOfRoads; i++) {
@@ -234,30 +237,36 @@ class QueueThread extends Thread {
                         }
                     }
 
+                    // Print Road Messages
                     System.out.println();
                     if (activeCount > 0) {
-                        // Don't calculate countdowns at time 0
-                        int activePosition = ((currentTime - 1) / Main.interval) % activeCount;
+                        int activePosition = (Main.timeSinceStartup / Main.interval) % activeCount;
                         int activeRoadIndex = activeIndexes[activePosition];
 
                         for (int j = 0; j < activeCount; j++) {
                             int i = activeIndexes[j];
 
                             if (i == activeRoadIndex) {
-                                int timeLeft = Main.interval - ((currentTime - 1) % Main.interval);
+                                int timeLeft = Main.interval - (Main.timeSinceStartup % Main.interval);
                                 System.out.println(Main.roadNames[i] + " will be\033[32m open for " + timeLeft + "s.\033[0m");
                             } else {
                                 int cyclesAway = (j - activePosition + activeCount) % activeCount;
-                                int timeUntilOpen = cyclesAway * Main.interval - ((currentTime - 1) % Main.interval);
+                                int timeUntilOpen = cyclesAway * Main.interval - (Main.timeSinceStartup % Main.interval);
                                 System.out.println(Main.roadNames[i] + " will be\033[31m closed for " + timeUntilOpen + "s.\033[0m");
                             }
                         }
                     }
                     System.out.println();
 
+                    // Print End Standard Message
                     System.out.println("! Press \"Enter\" to open menu !");
                 }
 
+                // Sleep for 1 second to regulate the printing interval
+                TimeUnit.SECONDS.sleep(1);
+
+                // Increment the time since the program started
+                Main.timeSinceStartup++;
             } catch (InterruptedException ignored) {}
         }
     }
