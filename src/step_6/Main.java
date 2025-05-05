@@ -88,7 +88,6 @@ public class Main {
 
     // Circular Queue Implementation Variables
     static String[] roadNames;
-    static int[] roadIntervals;
     static int roadIndexRear = 0;
     static int roadIndexFront = 0;
 
@@ -100,7 +99,6 @@ public class Main {
         Main.roadNames = new String[Main.numberOfRoads];
 
         Main.interval = Main.definePositiveInteger("Input the interval");
-        Main.roadIntervals = new int[Main.numberOfRoads];
 
         QueueThread queueThread = new QueueThread();
         queueThread.setName("QueueThread");
@@ -133,13 +131,6 @@ public class Main {
                                 Main.roadNames[Main.roadIndexRear] = input;
                                 System.out.println(Main.roadNames[Main.roadIndexRear] + " added. Press \"Enter\" to open menu.");
 
-                                // Add road interval to the roadIntervals queue:
-                                // Find the previous index of a circular queue, using modulo.
-                                // Formula: previousRear = (currentRear - 1 + sizeOfArray) % sizeOfArray
-                                int previousIndex = (Main.roadIndexRear - 1 + Main.numberOfRoads) % Main.numberOfRoads;
-                                // Calculate the interval of next index using the interval of previous index
-                                Main.roadIntervals[Main.roadIndexRear] = Main.roadIntervals[previousIndex] + Main.interval;
-
                                 // Update rear index for circular queue:
                                 // Calculates the next position using modulo.
                                 // Formula: nextRear = (currentRear + 1) % sizeOfArray
@@ -153,9 +144,8 @@ public class Main {
                             if (Main.roadNames[Main.roadIndexFront] != null) {
                                 // Print the front index
                                 System.out.println(Main.roadNames[Main.roadIndexFront] + " deleted. Press \"Enter\" to open menu.");
-                                // Delete the front index (name & interval)
+                                // Delete the front index (remove name)
                                 Main.roadNames[Main.roadIndexFront] = null;
-                                Main.roadIntervals[Main.roadIndexFront] = 0;
 
                                 // Update front index for circular queue:
                                 // Calculates the next position using modulo to wrap around the array.
