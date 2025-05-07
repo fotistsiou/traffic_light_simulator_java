@@ -91,6 +91,8 @@ public class Main {
     static int roadIndexRear = 0;
     static int roadIndexFront = 0;
 
+    // Offset which counts how many cycles have been "lost" due to road deletion
+    static int totalCyclesElapsed = 0;
 
     public static void main(String[] args) {
         System.out.println("Welcome to the traffic management system!");
@@ -151,6 +153,9 @@ public class Main {
                                 // Calculates the next position using modulo to wrap around the array.
                                 // Formula: nextFront = (currentFront + 1) % sizeOfArray
                                 Main.roadIndexFront = (Main.roadIndexFront + 1) % Main.numberOfRoads;
+
+                                // Increase total cycle counter so the timing offsets don't get misaligned
+                                Main.totalCyclesElapsed++;
                             } else {
                                 System.out.println("Queue is empty. Press \"Enter\" to open menu.");
                             }
@@ -228,18 +233,19 @@ class QueueThread extends Thread {
                     // Calculating how many streets have names
                     int activeCount = 0;
                     int[] activeIndexes = new int[Main.numberOfRoads];
+                    int frontTime = Main.roadIndexFront; // Circular order starting from roadIndexFront
                     for (int i = 0; i < Main.numberOfRoads; i++) {
-                        if (Main.roadNames[i] != null) {
-                            activeIndexes[activeCount] = i;
-                            activeCount++;
+                        int index = (frontTime + i) % Main.numberOfRoads;
+                        if (Main.roadNames[index] != null) {
+                            activeIndexes[activeCount++] = index;
                         }
                     }
 
                     // Print Road Messages
                     System.out.println();
                     if (activeCount > 0) {
-                        // Don't calculate countdowns at time 0
-                        int activePosition = ((currentTime - 1) / Main.interval) % activeCount;
+                        // Don't calculate countdowns at time 0 & use  totalCyclesElapsed
+                        int activePosition = ((Main.totalCyclesElapsed + (currentTime - 1) / Main.interval) % activeCount);
                         int activeRoadIndex = activeIndexes[activePosition];
 
                         for (int j = 0; j < activeCount; j++) {
