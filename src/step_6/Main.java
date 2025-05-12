@@ -1,5 +1,6 @@
 package step_6;
 
+import java.io.IOException;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -91,7 +92,7 @@ public class Main {
     static int roadIndexRear = 0;
     static int roadIndexFront = 0;
 
-    // Offset which counts how many cycles have been "lost" due to road deletion
+    // Tracks how many intervals have been skipped due to front road deletions
     static int totalCyclesElapsed = 0;
 
     public static void main(String[] args) {
@@ -107,6 +108,8 @@ public class Main {
         queueThread.start();
 
         while (true) {
+            Main.clearConsole();
+
             System.out.print(
                     """
                     Menu:
@@ -154,7 +157,7 @@ public class Main {
                                 // Formula: nextFront = (currentFront + 1) % sizeOfArray
                                 Main.roadIndexFront = (Main.roadIndexFront + 1) % Main.numberOfRoads;
 
-                                // Increase total cycle counter so the timing offsets don't get misaligned
+                                // Increase cycle counter to keep correct timing after removing a road
                                 Main.totalCyclesElapsed++;
                             } else {
                                 System.out.println("Queue is empty. Press \"Enter\" to open menu.");
@@ -208,6 +211,17 @@ public class Main {
         }
         return promptTypeNumber;
     }
+
+    static void clearConsole() {
+        // Clean the console output
+        try {
+            var clearCommand = System.getProperty("os.name").contains("Windows")
+                    ? new ProcessBuilder("cmd", "/c", "cls")
+                    : new ProcessBuilder("clear");
+            clearCommand.inheritIO().start().waitFor();
+        }
+        catch (IOException | InterruptedException ignored) {}
+    }
 }
 
 class QueueThread extends Thread {
@@ -223,7 +237,9 @@ class QueueThread extends Thread {
 
                 // If the system is in an active state, print relevant information
                 if (Main.inSystemState) {
+                    // We use a local variables to not affect the value of static attributes
                     int currentTime = Main.timeSinceStartup;
+                    int frontTime = Main.roadIndexFront;
 
                     // Print Initial Standard Message
                     System.out.println("! " + currentTime + "s. have passed since system startup !");
@@ -233,8 +249,8 @@ class QueueThread extends Thread {
                     // Calculating how many streets have names
                     int activeCount = 0;
                     int[] activeIndexes = new int[Main.numberOfRoads];
-                    int frontTime = Main.roadIndexFront; // Circular order starting from roadIndexFront
                     for (int i = 0; i < Main.numberOfRoads; i++) {
+                        // The index is calculated circularly (using %), starting from frontIndex and not from index 0.
                         int index = (frontTime + i) % Main.numberOfRoads;
                         if (Main.roadNames[index] != null) {
                             activeIndexes[activeCount++] = index;
@@ -242,29 +258,61 @@ class QueueThread extends Thread {
                     }
 
                     // Print Road Messages
-                    System.out.println();
                     if (activeCount > 0) {
-                        // Don't calculate countdowns at time 0 & use  totalCyclesElapsed
-                        int activePosition = ((Main.totalCyclesElapsed + (currentTime - 1) / Main.interval) % activeCount);
+                        System.out.println();
+
+                        // Calculates the active position
+                        int activePosition = (
+                                // The sum shows the total number of "switches" that have occurred, either from the passage
+                                // of time or from the removal of roads.
+                                (
+                                        // It is used as an offset to maintain synchronization in the circular calculation of roads.
+                                        Main.totalCyclesElapsed +
+                                                // It calculates how many complete intervals have passed since the system was started.
+                                                // -1 so that the first change does not occur exactly at 0 seconds.
+                                                (currentTime - 1) / Main.interval
+                                )
+                                        // Because roads are stored circularly, % activeCount ensures that it will not go out of bounds.
+                                        % activeCount
+                        );
                         int activeRoadIndex = activeIndexes[activePosition];
 
+                        // Loop to print the status of each active road
                         for (int j = 0; j < activeCount; j++) {
+                            // Get the actual index of the road in the circular array roadNames
                             int i = activeIndexes[j];
 
+                            // // We check if the specific road is the one that has priority (is open now)
                             if (i == activeRoadIndex) {
+                                // Calculate how much time is left until the road changes from open to closed
+                                // E.g. if the interval is 5 and 12 seconds have passed, then: 5 - (12 % 5) = 3
                                 int timeLeft = Main.interval - ((currentTime - 1) % Main.interval);
+
+                                // We print that the road is open and how long it will remain that way (in green)
                                 System.out.println(Main.roadNames[i] + " will be\033[32m open for " + timeLeft + "s.\033[0m");
                             } else {
+                                // The road is closed, so we need to calculate when it will become active
+
+                                // How many "cycles" of roads is this road away from the currently active one
+                                // +activeCount and %activeCount ensure that the number is positive and within limits
                                 int cyclesAway = (j - activePosition + activeCount) % activeCount;
-                                int timeUntilOpen = cyclesAway * Main.interval - ((currentTime - 1) % Main.interval);
-                                System.out.println(Main.roadNames[i] + " will be\033[31m closed for " + timeUntilOpen + "s.\033[0m");
+
+                                // How much time is left until it's this road's turn to be open
+                                // E.g. if it is 2 places away and the interval is 5, and we have traveled 12 seconds:
+                                // 2 * 5 - (12 % 5) = 10 - 2 = 8
+                                int timeLeftUntilOpen = cyclesAway * Main.interval - ((currentTime - 1) % Main.interval);
+
+                                // We print that the road is closed and in how many seconds it will open (in red)
+                                System.out.println(Main.roadNames[i] + " will be\033[31m closed for " + timeLeftUntilOpen + "s.\033[0m");
                             }
                         }
+
+                        System.out.println();
                     }
-                    System.out.println();
 
                     // Print End Standard Message
                     System.out.println("! Press \"Enter\" to open menu !");
+                    Main.clearConsole();
                 }
 
             } catch (InterruptedException ignored) {}
