@@ -262,19 +262,16 @@ class QueueThread extends Thread {
                         System.out.println();
 
                         // Calculates the active position
-                        int activePosition = (
-                                // The sum shows the total number of "switches" that have occurred, either from the passage
-                                // of time or from the removal of roads.
-                                (
-                                        // It is used as an offset to maintain synchronization in the circular calculation of roads.
-                                        Main.totalCyclesElapsed +
-                                                // It calculates how many complete intervals have passed since the system was started.
-                                                // -1 so that the first change does not occur exactly at 0 seconds.
-                                                (currentTime - 1) / Main.interval
-                                )
-                                        // Because roads are stored circularly, % activeCount ensures that it will not go out of bounds.
-                                        % activeCount
-                        );
+                        // The sum shows the total number of "switches" that have occurred,
+                        // either from the passage of time or from the removal of roads.
+                        // Main.totalCyclesElapsed
+                        // It is used as an offset to maintain synchronization in the circular calculation of roads.
+                        // (currentTime - 1) / Main.interval
+                        // It calculates how many complete intervals have passed since the system was started.
+                        // -1 so that the first change does not occur exactly at 0 seconds.
+                        // % activeCount
+                        // Because roads are stored circularly, % activeCount ensures that it will not go out of bounds.
+                        int activePosition = (Main.totalCyclesElapsed + (currentTime - 1) / Main.interval) % activeCount;
                         int activeRoadIndex = activeIndexes[activePosition];
 
                         // Loop to print the status of each active road
