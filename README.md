@@ -2,7 +2,7 @@
 
 ## Project Details
 
-> - **Level**: 🌟🌟 Challenging | **Time**: 🕒 ~23 hours
+> - **Level**: 🌟🌟 Medium | **Time**: 🕒 ~23 hours
 > - **Course**: [Java Developer](https://hyperskill.org/courses/17-java-developer)
 > - **Project**: [Traffic Light Simulator with Java](https://hyperskill.org/projects/288?track=17)
 > - **Description**: By the end of this project, in addition to creating your own "traffic light", you will learn how to
